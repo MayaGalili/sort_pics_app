@@ -17,7 +17,12 @@ logger = logging.getLogger(__name__)
 class ImageSorter:
     def __init__(self):
         # טעינת מודל MobileNetV2 לסיווג תמונות
-        self.model = hub.load('https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/4')
+        try:
+            self.model = hub.load('https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/4')
+            logger.info("המודל נטען בהצלחה")
+        except Exception as e:
+            logger.error(f"שגיאה בטעינת המודל: {e}")
+            raise
         
         # הגדרת קטגוריות
         self.categories = {
@@ -45,6 +50,10 @@ class ImageSorter:
         try:
             # טעינת התמונה
             img = cv2.imread(str(image_path))
+            if img is None:
+                logger.error(f"לא ניתן לטעון את התמונה: {image_path}")
+                return 'special'
+                
             img = cv2.resize(img, (224, 224))
             img = img / 255.0
             img = np.expand_dims(img, axis=0)
@@ -108,20 +117,24 @@ class ImageSorter:
                 logger.error(f"שגיאה בעיבוד הקובץ {image_path}: {e}")
 
 def main():
-    # יצירת מופע של הממיין
-    sorter = ImageSorter()
-    
-    # קבלת תיקיית המקור מהמשתמש
-    source_folder = input("הכנס את הנתיב לתיקיית המקור: ")
-    
-    if not os.path.exists(source_folder):
-        logger.error("התיקייה לא קיימת!")
-        return
-    
-    # התחלת התהליך
-    logger.info("מתחיל בתהליך המיון...")
-    sorter.process_folder(source_folder)
-    logger.info("התהליך הושלם בהצלחה!")
+    try:
+        # יצירת מופע של הממיין
+        sorter = ImageSorter()
+        
+        # קבלת תיקיית המקור מהמשתמש
+        source_folder = input("הכנס את הנתיב לתיקיית המקור: ")
+        
+        if not os.path.exists(source_folder):
+            logger.error("התיקייה לא קיימת!")
+            return
+        
+        # התחלת התהליך
+        logger.info("מתחיל בתהליך המיון...")
+        sorter.process_folder(source_folder)
+        logger.info("התהליך הושלם בהצלחה!")
+        
+    except Exception as e:
+        logger.error(f"שגיאה כללית: {e}")
 
 if __name__ == "__main__":
     main() 
