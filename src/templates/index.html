@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picture Splitter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .input-group {
+            margin: 20px 0;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Picture Splitter</h1>
+        <div class="input-group">
+            <label for="directory">Enter directory path:</label>
+            <input type="text" id="directory" placeholder="Enter the full path to your pictures directory">
+        </div>
+        <button onclick="selectDirectory()">Create Sorted Directory</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function selectDirectory() {
+            const directory = document.getElementById('directory').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!directory) {
+                resultDiv.className = 'error';
+                resultDiv.textContent = 'Please enter a directory path';
+                return;
+            }
+
+            try {
+                const response = await fetch('/select_directory', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ directory }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'success';
+                    resultDiv.textContent = `Success! Created sorted directory at: ${data.sorted_directory}`;
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.textContent = data.error || 'An error occurred';
+                }
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.textContent = 'An error occurred while processing your request';
+            }
+        }
+    </script>
+</body>
+</html> 
