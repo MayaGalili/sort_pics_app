@@ -81,7 +81,7 @@ class ImageSorter:
             f.write("=" * 50 + "\n\n")
             f.write("Brief description of the day...\n")  # We can add more advanced summary logic here
     
-    def process_folder(self, source_folder):
+    def process_folder(self, source_folder, out_folder):
         """Processes source folder and sorts images"""
         source_path = Path(source_folder)
         
@@ -99,15 +99,13 @@ class ImageSorter:
                 date = self.get_image_date(image_path)
                 date_folder = source_path / date.strftime('%Y-%m-%d')
                 
-                # Create folders
-                for category in ['people', 'views', 'special']:
-                    (date_folder / category).mkdir(parents=True, exist_ok=True)
-                
                 # Classify image
                 category = self.classify_image(image_path)
                 
                 # Move file to appropriate folder
-                target_path = date_folder / category / image_path.name
+                (out_folder / category).mkdir(parents=True, exist_ok=True)
+
+                target_path = out_folder / category / image_path.name
                 shutil.copy2(image_path, target_path)
                 
                 # Create daily summary
@@ -123,6 +121,8 @@ def main():
         
         # Get source folder from user
         source_folder = input("Enter the path to source folder: ")
+
+        out_folder = input("Enter the path to output folder: ")
         
         if not os.path.exists(source_folder):
             logger.error("Folder does not exist!")
@@ -130,7 +130,7 @@ def main():
         
         # Start the process
         logger.info("Starting sorting process...")
-        sorter.process_folder(source_folder)
+        sorter.process_folder(source_folder, out_folder)
         logger.info("Process completed successfully!")
         
     except Exception as e:
