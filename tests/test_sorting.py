@@ -65,9 +65,25 @@ def test_sorting_with_resources_folder():
     print(f"✅ Resources folder contains: {[f.name for f in resource_files]}")
     print(f"✅ Sorted directory created at: {sorted_dir}")
     
-    # The sorted directory should be empty initially (since we're not actually sorting yet)
+    # Check that files were actually sorted into categories
     sorted_files = list(Path(sorted_dir).glob("*"))
-    print(f"✅ Sorted directory contains: {[f.name for f in sorted_files]}")
+    print(f"✅ Sorted directory contains categories: {[f.name for f in sorted_files]}")
+    
+    # Count files in each category
+    for category in sorted_files:
+        if category.is_dir():
+            files_in_category = list(category.glob("*.jpg"))
+            print(f"   📁 {category.name}: {len(files_in_category)} files")
+            for file in files_in_category:
+                print(f"      - {file.name}")
+    
+    # Verify that files were actually sorted
+    total_sorted_files = sum(len(list(cat.glob("*.jpg"))) for cat in sorted_files if cat.is_dir())
+    print(f"✅ Total files sorted: {total_sorted_files}")
+    
+    # Test should pass if files were sorted
+    assert total_sorted_files > 0, "No files were sorted!"
+    print("🎉 Sorting functionality test PASSED!")
 
 
 if __name__ == "__main__":
