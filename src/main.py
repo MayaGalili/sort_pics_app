@@ -4,11 +4,17 @@ from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-def create_sorted_directory(input_path):
+def create_sorted_directory(input_path, output_path=None):
     """Create a subdirectory for sorted pictures and actually sort files"""
     input_path = Path(input_path)
-    sorted_dir = input_path / "sorted_pictures"
-    sorted_dir.mkdir(exist_ok=True)
+    
+    # If no output path specified, create sorted_pictures in input folder
+    if output_path is None:
+        sorted_dir = input_path / "sorted_pictures"
+    else:
+        sorted_dir = Path(output_path)
+    
+    sorted_dir.mkdir(parents=True, exist_ok=True)
     
     # Find all image files in the input directory
     image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'}
@@ -51,16 +57,18 @@ def home():
 def select_directory():
     """Handle directory selection and creation of sorted directory"""
     data = request.get_json()
-    input_directory = data.get('directory')
+    input_directory = data.get('input_directory')
+    output_directory = data.get('output_directory')  # Optional output folder
     
     if not input_directory:
-        return jsonify({'error': 'No directory selected'}), 400
+        return jsonify({'error': 'No input directory selected'}), 400
     
     try:
-        sorted_directory = create_sorted_directory(input_directory)
+        sorted_directory = create_sorted_directory(input_directory, output_directory)
         return jsonify({
-            'message': 'Directory created successfully',
+            'message': 'Pictures sorted successfully',
             'input_directory': input_directory,
+            'output_directory': output_directory,
             'sorted_directory': sorted_directory
         })
     except Exception as e:

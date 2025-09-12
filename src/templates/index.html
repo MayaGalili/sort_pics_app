@@ -63,21 +63,27 @@
     <div class="container">
         <h1>Picture Splitter</h1>
         <div class="input-group">
-            <label for="directory">Enter directory path:</label>
-            <input type="text" id="directory" placeholder="Enter the full path to your pictures directory">
+            <label for="input_directory">Input directory (source pictures):</label>
+            <input type="text" id="input_directory" placeholder="Enter the full path to your pictures directory">
         </div>
-        <button onclick="selectDirectory()">Create Sorted Directory</button>
+        <div class="input-group">
+            <label for="output_directory">Output directory (optional):</label>
+            <input type="text" id="output_directory" placeholder="Enter output path (leave empty to use input folder)">
+            <small style="color: #666; font-size: 0.9em;">If empty, sorted pictures will be placed in a 'sorted_pictures' folder inside the input directory</small>
+        </div>
+        <button onclick="selectDirectory()">Sort Pictures</button>
         <div id="result"></div>
     </div>
 
     <script>
         async function selectDirectory() {
-            const directory = document.getElementById('directory').value;
+            const inputDirectory = document.getElementById('input_directory').value;
+            const outputDirectory = document.getElementById('output_directory').value;
             const resultDiv = document.getElementById('result');
             
-            if (!directory) {
+            if (!inputDirectory) {
                 resultDiv.className = 'error';
-                resultDiv.textContent = 'Please enter a directory path';
+                resultDiv.textContent = 'Please enter an input directory path';
                 return;
             }
 
@@ -87,14 +93,21 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ directory }),
+                    body: JSON.stringify({ 
+                        input_directory: inputDirectory,
+                        output_directory: outputDirectory || null
+                    }),
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
                     resultDiv.className = 'success';
-                    resultDiv.textContent = `Success! Created sorted directory at: ${data.sorted_directory}`;
+                    let message = `Success! Pictures sorted to: ${data.sorted_directory}`;
+                    if (data.output_directory) {
+                        message += `\nOutput directory: ${data.output_directory}`;
+                    }
+                    resultDiv.textContent = message;
                 } else {
                     resultDiv.className = 'error';
                     resultDiv.textContent = data.error || 'An error occurred';

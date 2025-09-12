@@ -27,7 +27,7 @@ def test_sorting_functionality():
         for filename in test_files:
             (temp_path / filename).touch()
         
-        # Test the sorting function
+        # Test the sorting function (default behavior - no output folder)
         sorted_dir = create_sorted_directory(str(temp_path))
         
         # Verify the sorted directory was created
@@ -41,6 +41,33 @@ def test_sorting_functionality():
         print(f"✅ Sorting test passed! Created directory: {sorted_dir}")
         print(f"✅ Test files created: {test_files}")
         print(f"✅ Sorted directory exists: {os.path.exists(sorted_dir)}")
+
+
+def test_sorting_with_custom_output():
+    """Test sorting with custom output directory"""
+    
+    # Create a temporary directory with test files
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+        
+        # Create some test files
+        test_files = ["photo1.jpg", "photo2.png"]
+        for filename in test_files:
+            (temp_path / filename).touch()
+        
+        # Create a custom output directory
+        custom_output = temp_path / "my_sorted_pictures"
+        
+        # Test the sorting function with custom output
+        sorted_dir = create_sorted_directory(str(temp_path), str(custom_output))
+        
+        # Verify the custom output directory was used
+        assert sorted_dir == str(custom_output)
+        assert os.path.exists(sorted_dir)
+        assert os.path.isdir(sorted_dir)
+        
+        print(f"✅ Custom output test passed! Created directory: {sorted_dir}")
+        print(f"✅ Custom output directory exists: {os.path.exists(sorted_dir)}")
 
 
 def test_sorting_with_resources_folder():
@@ -88,4 +115,5 @@ def test_sorting_with_resources_folder():
 
 if __name__ == "__main__":
     test_sorting_functionality()
+    test_sorting_with_custom_output()
     test_sorting_with_resources_folder()
