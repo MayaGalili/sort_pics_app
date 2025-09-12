@@ -1,2 +1,4 @@
+# This file is kept for compatibility, but pyproject.toml is the primary source
+# Run 'uv sync' to install dependencies from pyproject.toml
 flask==3.0.2
 werkzeug==3.0.1
