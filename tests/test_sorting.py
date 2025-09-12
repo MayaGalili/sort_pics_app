@@ -70,50 +70,52 @@ def test_sorting_with_custom_output():
         print(f"✅ Custom output directory exists: {os.path.exists(sorted_dir)}")
 
 
-def test_sorting_with_resources_folder():
-    """Test sorting with the actual resources folder"""
+def test_sorting_with_sample_files():
+    """Test sorting with sample image files"""
     
-    # Get the path to the resources folder
-    resources_path = Path(__file__).parent / "resorces"
-    
-    if not resources_path.exists():
-        print("⚠️  Resources folder not found, skipping this test")
-        return
-    
-    # Test the sorting function with resources
-    sorted_dir = create_sorted_directory(str(resources_path))
-    
-    # Verify the sorted directory was created
-    assert os.path.exists(sorted_dir)
-    assert os.path.isdir(sorted_dir)
-    
-    # Check what files are in the resources folder
-    resource_files = list(resources_path.glob("*"))
-    print(f"✅ Resources folder contains: {[f.name for f in resource_files]}")
-    print(f"✅ Sorted directory created at: {sorted_dir}")
-    
-    # Check that files were actually sorted into categories
-    sorted_files = list(Path(sorted_dir).glob("*"))
-    print(f"✅ Sorted directory contains categories: {[f.name for f in sorted_files]}")
-    
-    # Count files in each category
-    for category in sorted_files:
-        if category.is_dir():
-            files_in_category = list(category.glob("*.jpg"))
-            print(f"   📁 {category.name}: {len(files_in_category)} files")
-            for file in files_in_category:
-                print(f"      - {file.name}")
-    
-    # Verify that files were actually sorted
-    total_sorted_files = sum(len(list(cat.glob("*.jpg"))) for cat in sorted_files if cat.is_dir())
-    print(f"✅ Total files sorted: {total_sorted_files}")
-    
-    # Test should pass if files were sorted
-    assert total_sorted_files > 0, "No files were sorted!"
-    print("🎉 Sorting functionality test PASSED!")
+    # Create a temporary directory with sample image files
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+        
+        # Create sample image files with different categories
+        sample_files = [
+            "girl-1894125_640.jpg",  # people
+            "people-2574170_640.jpg",  # people
+            "landscape-9802950_640.jpg",  # views
+            "gym-521476_640.jpg",  # views
+            "pancakes-2291908_640.jpg",  # special
+        ]
+        
+        for filename in sample_files:
+            (temp_path / filename).touch()
+        
+        # Test the sorting function
+        sorted_dir = create_sorted_directory(str(temp_path))
+        
+        # Verify the sorted directory was created
+        assert os.path.exists(sorted_dir)
+        assert os.path.isdir(sorted_dir)
+        
+        # Check that files were actually sorted into categories
+        sorted_files = list(Path(sorted_dir).glob("*"))
+        print(f"✅ Sorted directory contains categories: {[f.name for f in sorted_files]}")
+        
+        # Count files in each category
+        total_sorted_files = 0
+        for category in sorted_files:
+            if category.is_dir():
+                files_in_category = list(category.glob("*.jpg"))
+                total_sorted_files += len(files_in_category)
+                print(f"   📁 {category.name}: {len(files_in_category)} files")
+        
+        print(f"✅ Total files sorted: {total_sorted_files}")
+        
+        # Test should pass if files were sorted
+        assert total_sorted_files > 0, "No files were sorted!"
+        print("🎉 Sorting functionality test PASSED!")
 
 
 if __name__ == "__main__":
     test_sorting_functionality()
     test_sorting_with_custom_output()
-    test_sorting_with_resources_folder()
+    test_sorting_with_sample_files()
