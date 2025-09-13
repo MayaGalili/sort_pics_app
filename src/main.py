@@ -40,7 +40,7 @@ def map_to_custom(label: str) -> str:
     else:
         return "other"
 
-def categorize_image(image_path: str) -> str:
+def categorize_image_by_pytorch(image_path: str) -> str:
     image = Image.open(image_path).convert("RGB")
     img_t = transform(image).unsqueeze(0)
 
@@ -86,6 +86,43 @@ def categorize_image_by_openai(image_path):
             ],
         )
     return response.choices[0].message.content.strip().lower()
+
+# ++++++++++++++++++++ CLIP ++++++++++++++++++++
+
+import clip
+
+def categorize_image_by_clip(image_path):
+    """Categorize image using CLIP model"""
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model, preprocess = clip.load("ViT-B/32", device=device)
+    
+    # Load and preprocess the image
+    image = preprocess(Image.open(image_path)).unsqueeze(0).to(device)
+    
+    # Define the categories
+    categories = ["a photo of a person", "a photo of food", "a photo of a landscape", "something else"]
+    
+    # Tokenize the text
+    text = clip.tokenize(categories).to(device)
+    
+    # Calculate similarity between image and text
+    with torch.no_grad():
+        image_features = model.encode_image(image)
+        text_features = model.encode_text(text)
+        
+        # Calculate cosine similarity
+        similarities = (image_features @ text_features.T).softmax(dim=-1)
+    
+    # Get the best category
+    best_category = categories[similarities.argmax().item()]
+    
+    # Map to our folder structure
+    if "person" in best_category:
+        return "people"
+    elif "landscape" in best_category:
+        return "views"
+    else:  # food, something else
+        return "special"
 
 # ++++++++++++++++++++ NAME ++++++++++++++++++++
 
@@ -137,18 +174,21 @@ def create_sorted_directory(input_path, output_path=None):
     # Sort files into categories
     for image_file in image_files:
         try:
-            category = categorize_image(str(image_file))
-            # Map OpenAI categories to our folder structure
-            if category in ['people']:
-                category = 'people'
-            elif category in ['landscape']:
-                category = 'views'
-            else:  # food, other, etc.
-                category = 'special'
+            # Use CLIP for better classification
+            category = categorize_image_by_clip(str(image_file))
         except Exception as e:
-            print(f"Error categorizing {image_file.name}: {e}")
-            # Fallback to filename-based categorization
-            category = categorize_image_by_name(image_file)
+            print(f"Error categorizing {image_file.name} with CLIP: {e}")
+            try:
+                # Fallback to PyTorch ResNet
+                category, _ = categorize_image_by_pytorch(str(image_file))
+                if category == "food":
+                    category = "special"
+                elif category == "landscape":
+                    category = "views"
+            except Exception as e2:
+                print(f"Error categorizing {image_file.name} with PyTorch: {e2}")
+                # Final fallback to filename-based categorization
+                category = categorize_image_by_name(image_file)
         
         copy_to_category(image_file, sorted_dir, category)
 

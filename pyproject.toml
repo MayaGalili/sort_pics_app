@@ -31,6 +31,9 @@ dependencies = [
     "torch>=2.0.0",
     "torchvision>=0.15.0",
     "pillow>=9.0.0",
+    "ftfy>=6.0.0",
+    "regex>=2021.8.3",
+    "clip",
 ]
 
 [project.optional-dependencies]
@@ -62,6 +65,9 @@ dev-dependencies = [
     "flake8>=5.0.0,<6.0.0",
     "mypy>=1.5.0",
 ]
+
+[tool.uv.sources]
+clip = { git = "https://github.com/openai/CLIP.git" }
 
 [tool.black]
 line-length = 88
