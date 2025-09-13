@@ -1,10 +1,45 @@
 import os
 from pathlib import Path
 from flask import Flask, render_template, request, jsonify
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 
-def categorize_image(image_file):
+from openai import OpenAI
+
+load_dotenv()
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+def categorize_image(image_path):
+    import base64
+
+    with open(image_path, "rb") as f:
+        image_data = f.read()
+        base64_image = base64.b64encode(image_data).decode('utf-8')
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are an image classifier. Return only one word: people, food, landscape, or other."},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Classify this image into one of: people, food, landscape, other."},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}"
+                            }
+                        }
+                    ],
+                },
+            ],
+        )
+    return response.choices[0].message.content.strip().lower()
+
+
+def categorize_image_by_name(image_file):
     """Categorize an image file based on its filename"""
     filename_lower = image_file.name.lower()
 
@@ -46,10 +81,23 @@ def create_sorted_directory(input_path, output_path=None):
     for file_path in input_path.iterdir():
         if file_path.is_file() and file_path.suffix.lower() in image_extensions:
             image_files.append(file_path)
-    
+
     # Sort files into categories
     for image_file in image_files:
-        category = categorize_image(image_file)
+        try:
+            category = categorize_image(str(image_file))
+            # Map OpenAI categories to our folder structure
+            if category in ['people']:
+                category = 'people'
+            elif category in ['landscape']:
+                category = 'views'
+            else:  # food, other, etc.
+                category = 'special'
+        except Exception as e:
+            print(f"Error categorizing {image_file.name}: {e}")
+            # Fallback to filename-based categorization
+            category = categorize_image_by_name(image_file)
+        
         copy_to_category(image_file, sorted_dir, category)
 
     return str(sorted_dir)
