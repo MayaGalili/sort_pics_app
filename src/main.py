@@ -7,7 +7,7 @@ app = Flask(__name__)
 def categorize_image(image_file):
     """Categorize an image file based on its filename"""
     filename_lower = image_file.name.lower()
-    
+
     if any(keyword in filename_lower for keyword in ['people', 'person', 'girl', 'woman', 'man', 'boy']):
         return "people"
     elif any(keyword in filename_lower for keyword in ['landscape', 'grassland', 'gym', 'building']):
@@ -20,7 +20,7 @@ def copy_to_category(image_file, sorted_dir, category):
     # Create category directory if it doesn't exist
     category_dir = sorted_dir / category
     category_dir.mkdir(exist_ok=True)
-    
+
     # Copy file to the appropriate category
     destination = category_dir / image_file.name
     if not destination.exists():
@@ -51,7 +51,7 @@ def create_sorted_directory(input_path, output_path=None):
     for image_file in image_files:
         category = categorize_image(image_file)
         copy_to_category(image_file, sorted_dir, category)
-    
+
     return str(sorted_dir)
 
 @app.route('/')
