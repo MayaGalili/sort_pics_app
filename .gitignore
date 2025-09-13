@@ -52,6 +52,7 @@ coverage.xml
 .pytest_cache/
 cover/
 tests/resources/sorted_pictures
+tests/out
 
 # Translations
 *.mo
@@ -123,6 +124,7 @@ ENV/
 env.bak/
 venv.bak/
 
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -151,10 +153,10 @@ cython_debug/
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be added to the global gitignore or merged into this project gitignore.  For a PyCharm
 #  project, it is recommended to include the following files:
-#  .idea/
-#  *.iml
-#  *.ipr
-#  *.iws
+ .idea/
+ *.iml
+ *.ipr
+ *.iws
 
 # UV specific
 .uv/
