@@ -64,11 +64,7 @@ source_directory/
     │   ├── YYYY-MM-DD/
     │   │   ├── people/
     │   │   ├── views/
-    │   │   ├── special/
-    │   │   └── summary.txt
+    │   │   └── special/
     │   └── ...
     └── original_pictures/
 ```
-
-## Development Status
-This application is currently in early development. The core web interface and directory creation functionality is implemented, with sorting and categorization features planned for future releases.

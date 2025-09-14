@@ -5,52 +5,6 @@ from dotenv import load_dotenv
 
 app = Flask(__name__)
 
-# ++++++++++++++++++++ PYTORCH ++++++++++++++++++++
-
-import torch
-from torchvision import models, transforms
-from PIL import Image
-
-model = models.resnet18(pretrained=True)
-model.eval()
-
-transform = transforms.Compose([
-    transforms.Resize(256),
-    transforms.CenterCrop(224),
-    transforms.ToTensor(),
-    transforms.Normalize(
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225]
-    )
-])
-
-import urllib.request
-
-url = "https://raw.githubusercontent.com/pytorch/hub/master/imagenet_classes.txt"
-imagenet_classes = urllib.request.urlopen(url).read().decode("utf-8").splitlines()
-
-def map_to_custom(label: str) -> str:
-    label = label.lower()
-    if any(x in label for x in ["person", "man", "woman", "boy", "girl"]):
-        return "people"
-    elif any(x in label for x in ["food", "dish", "pizza", "cake", "sandwich", "fruit", "vegetable", "meat"]):
-        return "food"
-    elif any(x in label for x in ["mountain", "valley", "volcano", "cliff", "beach", "forest", "field", "lake"]):
-        return "landscape"
-    else:
-        return "other"
-
-def categorize_image_by_pytorch(image_path: str) -> str:
-    image = Image.open(image_path).convert("RGB")
-    img_t = transform(image).unsqueeze(0)
-
-    with torch.no_grad():
-        outputs = model(img_t)
-        _, predicted = outputs.max(1)
-
-    label = imagenet_classes[predicted.item()]
-    category = map_to_custom(label)
-    return category, label
 
 # ++++++++++++++++++++ OPENAI ++++++++++++++++++++
 
@@ -89,7 +43,9 @@ def categorize_image_by_openai(image_path):
 
 # ++++++++++++++++++++ CLIP ++++++++++++++++++++
 
+import torch
 import clip
+from PIL import Image
 
 def categorize_image_by_clip(image_path):
     """Categorize image using CLIP model"""
@@ -178,17 +134,8 @@ def create_sorted_directory(input_path, output_path=None):
             category = categorize_image_by_clip(str(image_file))
         except Exception as e:
             print(f"Error categorizing {image_file.name} with CLIP: {e}")
-            try:
-                # Fallback to PyTorch ResNet
-                category, _ = categorize_image_by_pytorch(str(image_file))
-                if category == "food":
-                    category = "special"
-                elif category == "landscape":
-                    category = "views"
-            except Exception as e2:
-                print(f"Error categorizing {image_file.name} with PyTorch: {e2}")
-                # Final fallback to filename-based categorization
-                category = categorize_image_by_name(image_file)
+            # Fallback to filename-based categorization
+            category = categorize_image_by_name(image_file)
         
         copy_to_category(image_file, sorted_dir, category)
 
